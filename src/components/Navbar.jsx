@@ -8,8 +8,9 @@ const Navbar = () => {
             <Container maxW={'container.xl'}>
                 <Flex justifyContent={'space-between'}>
                     <Link to='/' >
-                        <Box fontSize={'2xl'} fontWeight={'bold'} color={'red'} letterSpacing={'widest'} fontFamily={'monospace'}>
-                            CineScope
+                        <Box fontSize={'2xl'} fontWeight={'bold'} color={'red'} 
+                        letterSpacing={'widest'} fontFamily={'mono'}>
+                          CINESCOPE
                         </Box>
                     </Link>
                     <Flex>

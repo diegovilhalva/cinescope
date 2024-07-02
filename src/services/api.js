@@ -8,7 +8,12 @@ const baseURL = "https://api.themoviedb.org/3"
 const apiKey = import.meta.env.VITE_API_KEY
 
 
-export const fetchTrending = async (timeWindow = 'day' ) => {
-    const {data} = await axios.get(`${baseURL}/trending/all/${timeWindow}?api_key=${apiKey}&language=pt-BR`)
+export const fetchTrending = async (timeWindow = 'day') => {
+    const { data } = await axios.get(`${baseURL}/trending/all/${timeWindow}?api_key=${apiKey}&language=pt-BR`)
     return data?.results
 }
+
+export const fetchDetails = async (type, id) => {
+    const res = await axios.get(`${baseURL}/${type}/${id}?api_key=${apiKey}&language=pt-BR`);
+    return res?.data;
+};

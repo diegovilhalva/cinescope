@@ -4,7 +4,7 @@ import { imagePath } from "../services/api"
 import { StarIcon } from "@chakra-ui/icons";
 
 
-const CardComponent = ({ item }) => {
+const CardComponent = ({ item,type }) => {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
   const formattedDate = new Date(item?.release_date || item?.first_air_date).toLocaleDateString('pt-BR', options);
 
@@ -12,7 +12,7 @@ const CardComponent = ({ item }) => {
 
 
   return (
-    <Link to={'/'}>
+    <Link to={`/${type}/${item.id}`}>
       <Box position={'relative'} transform={'scale(1)'} _hover={{
         transform: { base: 'scale(1)', md: 'scale(1.08)' },
         zIndex: '10',

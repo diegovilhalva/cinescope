@@ -13,10 +13,10 @@ const Navbar = () => {
                           CINESCOPE
                         </Box>
                     </Link>
-                    <Flex>
+                    <Flex gap={'4'} alignItems={'center'}>
                         <Link to='/'>Home</Link>
                         <Link to='/movies'>Filmes</Link>
-                        <Link to='/shows'>Series</Link>
+                        <Link to='/shows'>Séries</Link>
                         <Link to='/search'>Pesquisar</Link>
                     </Flex>
                 </Flex>

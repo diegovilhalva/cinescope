@@ -17,3 +17,18 @@ export const fetchDetails = async (type, id) => {
     const res = await axios.get(`${baseURL}/${type}/${id}?api_key=${apiKey}&language=pt-BR`);
     return res?.data;
 };
+
+
+export const fetchCredits = async (type, id) => {
+    const res = await axios.get(
+      `${baseURL}/${type}/${id}/credits?api_key=${apiKey}&language=pt-BR`
+    );
+    return res?.data;
+}  
+
+export const fetchVideos = async (type, id) => {
+    const res = await axios.get(
+      `${baseURL}/${type}/${id}/videos?api_key=${apiKey}&language=pt-BR`
+    );
+    return res?.data;
+  };

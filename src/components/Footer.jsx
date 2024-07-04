@@ -6,6 +6,7 @@ const Footer = () => {
  
 
   return (
+    
     <Box as="footer" width="100%" py={4} bg="#000" mt={'10'}>
       <Flex
         maxW="1200px"

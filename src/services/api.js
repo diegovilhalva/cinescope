@@ -35,43 +35,64 @@ export const fetchVideos = async (type, id) => {
 
 
 export const fetchMovies = async (page = 1, sortBy = "popularity.desc", minVoteCount = null) => {
-  const params = {
-    api_key: apiKey,
-    language: "pt-BR",
-    page: page.toString(),
-    sort_by: sortBy,
-  };
+    const params = {
+        api_key: apiKey,
+        language: "pt-BR",
+        page: page.toString(),
+        sort_by: sortBy,
+    };
 
-  if (minVoteCount) {
-    params['vote_count.gte'] = minVoteCount.toString();
-  }
+    if (minVoteCount) {
+        params['vote_count.gte'] = minVoteCount.toString();
+    }
 
-  try {
-    const response = await axios.get(`${baseURL}/discover/movie`, { params });
-    return response.data;
-  } catch (error) {
-    console.error('Erro ao buscar filmes:', error);
-    throw error;
-  }
+    try {
+        const response = await axios.get(`${baseURL}/discover/movie`, { params });
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar filmes:', error);
+        throw error;
+    }
 };
 
 export const fetchShows = async (page = 1, sortBy = "popularity.desc", minVoteCount = null) => {
     const params = {
-      api_key: apiKey,
-      language: "pt-BR",
-      page: page.toString(),
-      sort_by: sortBy,
+        api_key: apiKey,
+        language: "pt-BR",
+        page: page.toString(),
+        sort_by: sortBy,
     };
-  
+
     if (minVoteCount) {
-      params['vote_count.gte'] = minVoteCount.toString();
+        params['vote_count.gte'] = minVoteCount.toString();
     }
-  
+
     try {
-      const response = await axios.get('https://api.themoviedb.org/3/discover/tv', { params });
+        const response = await axios.get('https://api.themoviedb.org/3/discover/tv', { params });
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar séries:', error);
+        throw error;
+    }
+}
+
+
+export const searchData = async (query, page) => {
+    const res = await axios.get(
+        `${baseURL}/search/multi?api_key=${apiKey}&query=${query}&page=${page}&language=pt-BR`
+    );
+    return res?.data
+};
+
+export const getPersonDetails = async (personId) => {
+    try {
+      const response = await axios.get(
+        `${baseURL}/person/${personId}?api_key=${apiKey}&language=pt-BR`
+      );
+  
       return response.data;
     } catch (error) {
-      console.error('Erro ao buscar séries:', error);
+      console.error("Erro ao buscar detalhes do artista:", error);
       throw error;
     }
-  }
+  };

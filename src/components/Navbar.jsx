@@ -90,7 +90,7 @@ const Navbar = () => {
                 <DrawerBody>
                   <Flex flexDirection={"column"} gap={"4"} onClick={onClose}>
                     <Link to="/">Home</Link>
-                    <Link to="/movies">Files</Link>
+                    <Link to="/movies">Filmes</Link>
                     <Link to="/shows">Séries</Link>
                     {user && (
                       <>

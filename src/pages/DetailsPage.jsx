@@ -1,17 +1,22 @@
-import { Badge, Box, Button, CircularProgress, CircularProgressLabel, Container, Flex, Heading, Image, Spinner, Text } from "@chakra-ui/react";
+import { Badge, Box, Button, CircularProgress, CircularProgressLabel, Container, Flex, Heading, Image, Spinner, Text, useToast } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { fetchCredits, fetchDetails, fetchVideos, getPersonDetails, imagePath, imagePathOriginal } from "../services/api";
 import { CalendarIcon, CheckCircleIcon, ExternalLinkIcon, SmallAddIcon, TimeIcon } from "@chakra-ui/icons";
 import { minutesToHours, ratingToPercentage, resolveRatingColor } from "../utils/helpers";
 import VideoComponent from "../components/VideoComponent";
+import { useAuth } from "../context/useAuth";
+import { useFirestore } from "../services/firestore";
 
 const DetailsPage = () => {
     const { id, type } = useParams();
+    const { user } = useAuth()
+    const { addToWatchList, checkIfInWatchlist,removeFromWatchlist } = useFirestore()
+    const toast = useToast()
     const [details, setDetails] = useState({});
     const [cast, setCast] = useState([]);
-  
     const [loading, setLoading] = useState(true);
+    const [isInWatchList, setIsInWatchList] = useState(false)
     const [video, setVideo] = useState(null);
     const [videos, setVideos] = useState([]);
 
@@ -22,7 +27,7 @@ const DetailsPage = () => {
 
                 if (type === "person") {
                     detailsData = await getPersonDetails(id);
-                   
+
                 } else {
                     [detailsData, creditsData, videosData] = await Promise.all([fetchDetails(type, id), fetchCredits(type, id), fetchVideos(type, id)]);
                 }
@@ -37,7 +42,7 @@ const DetailsPage = () => {
                     ?.filter((video) => video?.type !== "Trailer")
                     ?.slice(0, 10);
                 setVideos(videos);
-              
+
             } catch (error) {
                 console.log(error);
             } finally {
@@ -47,6 +52,50 @@ const DetailsPage = () => {
         fetchData();
     }, [type, id]);
 
+
+    const handleSaveToWatchList = async () => {
+
+        if (!user) {
+            toast({
+                title: "Faça login para adicionar minha lista",
+                status: "error",
+                isClosable: true,
+            })
+            return;
+        }
+        const data = {
+            id: details?.id,
+            title: details?.title || details?.name,
+            type: type,
+            poster_path: details?.poster_path,
+            release_date: details?.release_date || details?.first_air_date,
+            vote_average: details?.vote_average,
+            overview: details?.overview
+        }
+        const dataId = details?.id?.toString();
+
+        await addToWatchList(user?.uid, dataId, data)
+
+        const isSetToWatchlist = await checkIfInWatchlist(user?.uid, dataId)
+        setIsInWatchList(isSetToWatchlist)
+
+    }
+    useEffect(() => {
+        if (!user) {
+            setIsInWatchList(false)
+            return
+        }
+        checkIfInWatchlist(user?.uid,id).then((data) => {
+            setIsInWatchList(data)
+        })
+
+    },[id,user])
+
+    const handleRemoveFromWatchlist = async () => {
+        await removeFromWatchlist(user?.uid, id);
+        const isSetToWatchlist = await checkIfInWatchlist(user?.uid, id);
+        setIsInWatchList(isSetToWatchlist);
+      };
     if (loading) {
         return (
             <Flex justify="center">
@@ -57,7 +106,8 @@ const DetailsPage = () => {
 
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     const formattedDate = type !== "person" ? new Date(details?.release_date || details?.first_air_date).toLocaleDateString('pt-BR', options) : null;
-   
+
+
 
     return (
         <Box>
@@ -94,34 +144,42 @@ const DetailsPage = () => {
                                             {minutesToHours(details?.runtime)}
                                         </Text>
                                     </Flex>
-                                    <Flex alignItems="center" gap="4">
-                                        <CircularProgress
-                                            value={ratingToPercentage(details?.vote_average)}
-                                            bg="gray.800"
-                                            borderRadius="full"
-                                            p="0.5"
-                                            size="70px"
-                                            color={resolveRatingColor(details?.vote_average)}
-                                            thickness="6px"
-                                        >
-                                            <CircularProgressLabel fontSize="lg">
-                                                {ratingToPercentage(details?.vote_average)}
-                                                <Box as="span" fontSize="10px">%</Box>
-                                            </CircularProgressLabel>
-                                        </CircularProgress>
-                                        <Text display={{ base: 'none', md: 'initial' }}>Aprovação do público</Text>
-                                        <Button leftIcon={<CheckCircleIcon />} colorScheme="green" variant="outline" display="none" onClick={() => console.log('click')}>
-                                            Adicionado a minha lista
-                                        </Button>
-                                        <Button leftIcon={<SmallAddIcon />} colorScheme="gray" variant="outline" onClick={() => console.log('click')}>
-                                            Adicionar a minha lista
-                                        </Button>
-                                    </Flex>
+
                                 </>
                             )}
-                              {type === "person" && (
+                            {type !== 'person' && (
+                                <Flex alignItems="center" gap="4">
+                                    <CircularProgress
+                                        value={ratingToPercentage(details?.vote_average)}
+                                        bg="gray.800"
+                                        borderRadius="full"
+                                        p="0.5"
+                                        size="70px"
+                                        color={resolveRatingColor(details?.vote_average)}
+                                        thickness="6px"
+                                    >
+                                        <CircularProgressLabel fontSize="lg">
+                                            {ratingToPercentage(details?.vote_average)}
+                                            <Box as="span" fontSize="10px">%</Box>
+                                        </CircularProgressLabel>
+                                    </CircularProgress>
+                                    <Text display={{ base: 'none', md: 'initial' }}>Aprovação do público</Text>
+                                    {isInWatchList ? (<Button leftIcon={<CheckCircleIcon />} colorScheme="green" variant="outline" onClick={handleRemoveFromWatchlist}>
+                                        Adicionado a minha lista
+                                    </Button>) : (
+                                        <Button leftIcon={<SmallAddIcon />} colorScheme="gray" variant="outline" onClick={handleSaveToWatchList}>
+                                            Adicionar a minha lista
+                                        </Button>
+                                    )}
+
+
+                                </Flex>
+                            )
+
+                            }
+                            {type === "person" && (
                                 <>
-                                   
+
                                     {details?.birthday && (
                                         <Flex alignItems="center" mt="2">
                                             <CalendarIcon mr={2} color="gray.400" />
@@ -179,7 +237,7 @@ const DetailsPage = () => {
                 </Container>
             </Box>
             <Container maxW="container.xl" pb="10">
-               {cast &&  <Heading as="h2" fontSize="lg" textTransform="uppercase" mt="10" mb="5">Elenco</Heading>}
+                {cast && <Heading as="h2" fontSize="lg" textTransform="uppercase" mt="10" mb="5">Elenco</Heading>}
                 <Flex
                     mt="5"
                     mb="10"
@@ -213,7 +271,7 @@ const DetailsPage = () => {
                         </Box>
                     ))}
                 </Flex>
-               {videos &&  <Heading
+                {videos && <Heading
                     as="h2"
                     fontSize={"md"}
                     textTransform={"uppercase"}
@@ -222,32 +280,32 @@ const DetailsPage = () => {
                 >
                     Videos
                 </Heading>}
-                { type !== "person" && <> <VideoComponent id={video?.key} />
-                <Flex mt="5" mb="10" overflowX={"scroll"} gap={"5"} sx={{
-                    '&::-webkit-scrollbar': {
-                        height: '8px',
-                    },
-                    '&::-webkit-scrollbar-track': {
-                        background: '#111',
-                    },
-                    '&::-webkit-scrollbar-thumb': {
-                        background: '#ff0000',
-                        borderRadius: '8px',
-                    },
-                    '&::-webkit-scrollbar-thumb:hover': {
-                        background: '#ff0011',
-                    },
-                }}>
-                    {type !== "person" && videos &&
-                        videos?.map((item) => (
-                            <Box key={item?.id} minW={"290px"}>
-                                <VideoComponent id={item?.key} small />
-                                <Text fontSize={"sm"} fontWeight={"bold"} mt="2" noOfLines={2}>
-                                    {item?.name}{" "}
-                                </Text>
-                            </Box>
-                        ))}
-                </Flex>
+                {type !== "person" && <> <VideoComponent id={video?.key} />
+                    <Flex mt="5" mb="10" overflowX={"scroll"} gap={"5"} sx={{
+                        '&::-webkit-scrollbar': {
+                            height: '8px',
+                        },
+                        '&::-webkit-scrollbar-track': {
+                            background: '#111',
+                        },
+                        '&::-webkit-scrollbar-thumb': {
+                            background: '#ff0000',
+                            borderRadius: '8px',
+                        },
+                        '&::-webkit-scrollbar-thumb:hover': {
+                            background: '#ff0011',
+                        },
+                    }}>
+                        {type !== "person" && videos &&
+                            videos?.map((item) => (
+                                <Box key={item?.id} minW={"290px"}>
+                                    <VideoComponent id={item?.key} small />
+                                    <Text fontSize={"sm"} fontWeight={"bold"} mt="2" noOfLines={2}>
+                                        {item?.name}{" "}
+                                    </Text>
+                                </Box>
+                            ))}
+                    </Flex>
                 </>}
             </Container>
         </Box>

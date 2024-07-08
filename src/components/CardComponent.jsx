@@ -5,7 +5,17 @@ import { StarIcon } from "@chakra-ui/icons";
 
 const CardComponent = ({ item, type }) => {
   const options = { year: 'numeric', month: 'long', day: 'numeric' };
-  const formattedDate = new Date(item?.release_date || item?.first_air_date).toLocaleDateString('pt-BR', options);
+
+  const getFormattedDate = (dateString) => {
+      const date = new Date(dateString);
+      const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+      return utcDate.toLocaleDateString('pt-BR', options);
+  };
+  
+  const formattedDate = type !== "person" ? getFormattedDate(item?.release_date || item?.first_air_date) : null;
+  
+  
+  
 
   return (
     <Link to={`/${type}/${item.id}`}>

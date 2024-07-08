@@ -105,11 +105,20 @@ const DetailsPage = () => {
     }
 
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-    const formattedDate = type !== "person" ? new Date(details?.release_date || details?.first_air_date).toLocaleDateString('pt-BR', options) : null;
 
-
-
-    return (
+    const getFormattedDate = (dateString) => {
+        const date = new Date(dateString);
+        const utcDate = new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+        return utcDate.toLocaleDateString('pt-BR', options);
+    };
+    
+    const formattedDate = type !== "person" ? getFormattedDate(details?.release_date || details?.first_air_date) : null;
+    
+    
+    const plusOneDay = new Date(details?.birthday);
+plusOneDay.setDate(plusOneDay.getDate() + 1);
+const bdayFormatted = plusOneDay.toLocaleDateString('pt-BR', options);
+   return (
         <Box>
             <Box
                 background={`linear-gradient(rgba(0,0,0,.88), rgba(0,0,0,.88)), url(${imagePathOriginal}/${details?.backdrop_path})`}
@@ -183,7 +192,7 @@ const DetailsPage = () => {
                                     {details?.birthday && (
                                         <Flex alignItems="center" mt="2">
                                             <CalendarIcon mr={2} color="gray.400" />
-                                            <Text>Data de Nascimento: {new Date(details?.birthday).toLocaleDateString('pt-BR', options)}</Text>
+                                            <Text>Data de Nascimento: {bdayFormatted}</Text>
                                         </Flex>
                                     )}
                                     {details?.biography && (
